@@ -1,11 +1,11 @@
 #include <stdlib.h>
 #include <LiquidCrystal.h>
 
-#define LCD_POWER  7
+#define LCD_LED    9
 #define LCD_BRIGHT 6
 #define DIAL_PIN   A2  // Pin for normally opened rotary dialer
 
-LiquidCrystal lcd(12,10,5,4,3,2);
+LiquidCrystal lcd(8,7,5,4,3,2);
 int count = 0;               // Current digit
 int pos = 0;                 // Current position for LCD
 char count_char[2];          // Char to print digit on LCD
@@ -15,17 +15,17 @@ bool lastRead = false;       // Previous reading
 bool lcd_on = false;         // True if LCD has any digits
 long lastChangeTime = 0;     // Time when last change happened
 int debounceDelay = 10;      // Minimum time between short circuits
-int interDigitTimeout = 100; // Minimum time between digits
+int interDigitTimeout = 200; // Minimum time between digits
 int idleTimeout = 5000;      // Time before turning LCD off
 
 void setup()
 {
   Serial.begin(9600);
   pinMode(DIAL_PIN, INPUT_PULLUP);
-  pinMode(LCD_POWER, OUTPUT);
+  pinMode(LCD_LED, OUTPUT);
   pinMode(LCD_BRIGHT, OUTPUT);
-  digitalWrite(LCD_POWER, HIGH);
-  analogWrite(LCD_BRIGHT,30);
+  analogWrite(LCD_LED, 255);
+  analogWrite(LCD_BRIGHT, 80);
   lcd.begin(16, 2);
   reset_lcd();
 }
@@ -70,7 +70,7 @@ void loop()
     if ( reading != lastRead ) {          // Something has changed
       lastChangeTime = millis();          // Keep track of time
       lastRead = reading;                 // Keep track of readings
-      if ( reading ) {                    // If short circuit
+      if ( !reading ) {                   // If circuit has opened
         lcd_on = true;
         count++;                          // Increment digit
         itoa(count % 10, count_char, 10); // Integer to char
