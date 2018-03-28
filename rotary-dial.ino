@@ -2,6 +2,7 @@
 #include <LiquidCrystal.h>
 
 #define LCD_LED    9
+#define RGB_LED   11
 #define LCD_BRIGHT 6
 #define DIAL_PIN   A2  // Pin for normally opened rotary dialer
 
@@ -25,8 +26,10 @@ void setup()
   Serial.begin(9600);
   pinMode(DIAL_PIN, INPUT_PULLUP);
   pinMode(LCD_LED, OUTPUT);
+  pinMode(RGB_LED, OUTPUT);
   pinMode(LCD_BRIGHT, OUTPUT);
   analogWrite(LCD_LED, 0);
+  analogWrite(RGB_LED, 0);
   analogWrite(LCD_BRIGHT,30);
   lcd.begin(16, 2);
   reset_lcd();
@@ -80,9 +83,12 @@ void loop()
     if ( reading != lastRead ) {          // Something has changed
       lastChangeTime = millis();          // Keep track of time
       lastRead = reading;                 // Keep track of readings
-      if ( !reading ) {                   // If circuit has opened
+      if ( reading ) {                    // If circuit has closed
+        analogWrite(RGB_LED, 150)
+      } else {                            // If circuit has opened
         lcd_in_use = lcd_led_on = true;
         analogWrite(LCD_LED,255);
+        analogWrite(RGB_LED,150);
         count++;                          // Increment digit
         itoa(count % 10, count_char, 10); // Integer to char
         lcd.setCursor(pos,1);
