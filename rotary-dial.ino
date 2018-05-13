@@ -1,3 +1,14 @@
+// This is a simple project for my child's busybox
+
+// Arduino is connected to a rotary dialer (DIAL_PIN) and is monitoring dialing
+// by checking if circuit is closed or opened (with debounce delay). At each
+// iteration of dialing the final digit all preceding digits are shown on an LED
+// display.
+// After digitTimeout digit is finalized and next dial is counted to the next
+// digit.
+// After textTimeout LCD is reset to it's initial state (digits are erased).
+// After ledTimeout LED backlight of LCD is turned off.
+
 #include <stdlib.h>
 #include <LiquidCrystal.h>
 
@@ -18,8 +29,8 @@ bool lcd_in_use = false;  // True if LCD has non-default text
 long lastChangeTime = 0;  // Time when last change happened
 int debounceDelay = 10;   // Minimum time between short circuits
 int digitTimeout = 100;   // Minimum time between digits
-int textTimeout = 1000;   // Time before deleting non-default text
-int ledTimeout =  2000;   // Time before turning LED off
+int textTimeout = 2000;   // Time before deleting non-default text
+int ledTimeout =  5000;   // Time before turning LED off
 
 void setup()
 {
@@ -30,7 +41,7 @@ void setup()
   pinMode(LCD_BRIGHT, OUTPUT);
   analogWrite(LCD_LED, 0);
   analogWrite(RGB_LED, 0);
-  analogWrite(LCD_BRIGHT,30);
+  analogWrite(LCD_BRIGHT,100);
   lcd.begin(16, 2);
   reset_lcd();
 }
@@ -84,13 +95,19 @@ void loop()
       lastChangeTime = millis();          // Keep track of time
       lastRead = reading;                 // Keep track of readings
       if ( reading ) {                    // If circuit has closed
-        analogWrite(RGB_LED, 150)
+        if ( !lcd_in_use ) {
+          lcd_in_use = lcd_led_on = true;
+          analogWrite(LCD_LED,255);
+        }
+        if ( !count ) {                   // Dialing has just started (0)
+          lcd.setCursor(pos,1);
+          lcd.print("1");
+        }
+        analogWrite(RGB_LED, 150);
       } else {                            // If circuit has opened
-        lcd_in_use = lcd_led_on = true;
-        analogWrite(LCD_LED,255);
-        analogWrite(RGB_LED,150);
+        analogWrite(RGB_LED,0);
         count++;                          // Increment digit
-        itoa(count % 10, count_char, 10); // Integer to char
+        itoa(count % 10, count_char, 10); // Last digit of integer to char
         lcd.setCursor(pos,1);
         lcd.print(count_char);
         Serial.print(count % 10, DEC);
