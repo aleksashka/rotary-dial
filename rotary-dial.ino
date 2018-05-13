@@ -9,6 +9,7 @@
 // After textTimeout LCD is reset to it's initial state (digits are erased).
 // After ledTimeout LED backlight of LCD is turned off.
 
+//#define DEBUG 1
 #include <stdlib.h>
 #include <LiquidCrystal.h>
 
@@ -34,7 +35,9 @@ int ledTimeout =  5000;   // Time before turning LED off
 
 void setup()
 {
+  #ifdef DEBUG
   Serial.begin(9600);
+  #endif
   pinMode(DIAL_PIN, INPUT_PULLUP);
   pinMode(LCD_LED, OUTPUT);
   pinMode(RGB_LED, OUTPUT);
@@ -60,7 +63,9 @@ void loop()
       // Bother only if LCD has some non-default text
       if ( (millis() - lastChangeTime) > textTimeout) {
         // Idle timeout expired, so reset
+        #ifdef DEBUG
         Serial.println("Text timeout expired");
+        #endif
         reset_lcd();
         pos = 0;
         lcd_in_use = false;
@@ -70,7 +75,9 @@ void loop()
         // interDigitTimeout has passed
         if ( count ) {
           // Some number was dialed, so change position
+          #ifdef DEBUG
           Serial.println("done");
+          #endif
           count = 0;                // Reset digit
           pos++;                    // Move to the right
           if ( pos > 15 ) {         // Carriage return if number is too long
@@ -82,7 +89,9 @@ void loop()
       }
     } else if ( (millis() - lastChangeTime) > ledTimeout) {
       // if LCD LED timeout expired, then turn LED off
+      #ifdef DEBUG
       Serial.println("LED timeout expired");
+      #endif
       lcd_led_on = false;
       analogWrite(LCD_LED,0);
     }
@@ -110,8 +119,10 @@ void loop()
         itoa(count % 10, count_char, 10); // Last digit of integer to char
         lcd.setCursor(pos,1);
         lcd.print(count_char);
+        #ifdef DEBUG
         Serial.print(count % 10, DEC);
         Serial.print(" ");
+        #endif
       }
     }
   }
